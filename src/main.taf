@@ -1,0 +1,2 @@
+<taf-app:container:ghcr.io/taffish/compleasm:0.2.7-r1>
+compleasm ::*ARGV*::
