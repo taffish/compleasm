@@ -21,7 +21,7 @@ taf install compleasm
 Install the exact release:
 
 ```sh
-taf install compleasm 0.2.7-r1
+taf install compleasm 0.2.7-r2
 ```
 
 For local testing before the app is published to the public index:
@@ -139,9 +139,9 @@ taf-compleasm run_sepp.py -h
 ```text
 name: compleasm
 command: taf-compleasm
-version: 0.2.7-r1
+version: 0.2.7-r2
 kind: tool
-image: ghcr.io/taffish/compleasm:0.2.7-r1
+image: ghcr.io/taffish/compleasm:0.2.7-r2
 ```
 
 ## Container
@@ -182,21 +182,21 @@ On linux/arm64, the available `sepp` packages require a newer DendroPy than
 Compleasm 0.2.7 allows, so this TAFFISH release keeps full upstream
 functionality and declares amd64 only.
 
-On arm64 machines such as Apple Silicon Macs, the image can still be used
-through Docker's amd64 emulation path. Request the amd64 platform and Docker
-backend explicitly:
+For Docker and Podman, `src/main.taf` declares `--platform linux/amd64`, so
+arm64 machines such as Apple Silicon Macs can still use the image through
+normal Docker/Podman amd64 emulation:
 
 ```sh
-DOCKER_DEFAULT_PLATFORM=linux/amd64 TAFFISH_CONTAINER_BACKEND=docker \
+TAFFISH_CONTAINER_BACKEND=docker \
   taf-compleasm compleasm --version
 
-DOCKER_DEFAULT_PLATFORM=linux/amd64 TAFFISH_CONTAINER_BACKEND=docker \
+TAFFISH_CONTAINER_BACKEND=docker \
   taf-compleasm compleasm run -a genome.fa -o compleasm-out -l eukaryota -t 8
 ```
 
 This does not mean the image contains a native arm64 build; it runs the amd64
-image through emulation. Podman or Apptainer on arm64 may require their own
-amd64 compatibility setup or may reject the amd64-only image.
+image through emulation. Apptainer compatibility depends on the host and site
+configuration.
 
 ## Smoke Checks
 
@@ -234,9 +234,9 @@ Useful checks before publishing:
 taf check
 taf build
 taf publish --release --dry-run
-docker build --platform linux/amd64 -t ghcr.io/taffish/compleasm:0.2.7-r1 -f docker/Dockerfile .
-docker run --rm ghcr.io/taffish/compleasm:0.2.7-r1 compleasm --version
-docker run --rm ghcr.io/taffish/compleasm:0.2.7-r1 compleasm --help
+docker build --platform linux/amd64 -t ghcr.io/taffish/compleasm:0.2.7-r2 -f docker/Dockerfile .
+docker run --rm ghcr.io/taffish/compleasm:0.2.7-r2 compleasm --version
+docker run --rm ghcr.io/taffish/compleasm:0.2.7-r2 compleasm --help
 ```
 
 The repository wrapper files are licensed under Apache-2.0. Upstream
