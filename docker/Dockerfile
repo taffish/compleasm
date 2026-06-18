@@ -1,6 +1,7 @@
 FROM mambaorg/micromamba:1.5.10-bookworm-slim
 
-ARG COMPLEASM_VERSION=0.2.7
+ARG COMPLEASM_VERSION=0.2.8
+ARG COMPLEASM_BUILD=pyh106432d_0
 ARG MINIPROT_VERSION=0.18
 ARG HMMER_VERSION=3.1b2
 ARG SEPP_VERSION=4.5.1
@@ -19,7 +20,7 @@ RUN micromamba install -y -n base \
       -c conda-forge \
       -c bioconda \
       "python=3.7" \
-      "compleasm=${COMPLEASM_VERSION}" \
+      "compleasm=${COMPLEASM_VERSION}=${COMPLEASM_BUILD}" \
       "miniprot=${MINIPROT_VERSION}" \
       "hmmer=${HMMER_VERSION}" \
       "sepp=${SEPP_VERSION}" \

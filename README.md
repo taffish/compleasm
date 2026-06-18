@@ -4,7 +4,7 @@ TAFFISH wrapper for [Compleasm](https://github.com/huangnengCSU/compleasm),
 a fast genome and protein completeness assessment tool based on BUSCO marker
 genes, miniprot, and HMMER.
 
-This repository packages Compleasm 0.2.7 as a TAFFISH tool app. The container
+This repository packages Compleasm 0.2.8 as a TAFFISH tool app. The container
 installs the Bioconda Compleasm package and exposes the upstream `compleasm`
 command together with its runtime tools, including `miniprot`, `hmmsearch`,
 and `run_sepp.py`.
@@ -21,7 +21,7 @@ taf install compleasm
 Install the exact release:
 
 ```sh
-taf install compleasm 0.2.7-r2
+taf install compleasm 0.2.8-r1
 ```
 
 For local testing before the app is published to the public index:
@@ -82,9 +82,11 @@ The container already includes `pandas`, `miniprot`, `hmmsearch`, and
 `run_sepp.py`, so users do not need to run `pip install pandas` or
 `conda install sepp` inside the container.
 
-Compleasm 0.2.7 uses BUSCO ODB12 by default and is not compatible with ODB10
-lineage datasets. Use ODB12 lineage downloads unless you intentionally build a
-separate older Compleasm release for ODB10.
+Compleasm 0.2.8 continues the BUSCO ODB12 default introduced in 0.2.7 and is
+not compatible with ODB10 lineage datasets. Use ODB12 lineage downloads unless
+you intentionally build a separate older Compleasm release for ODB10. This
+release includes the upstream fix for placement filename parsing when an ODB
+version contains a dot, for example `--odb odb12.2`.
 
 Compleasm has subcommands such as `run`, `analyze`, `download`, `list`,
 `miniprot`, and `protein`. Because this is a command-mode TAFFISH tool, the
@@ -116,6 +118,7 @@ taf-compleasm compleasm run \
   -a genome.fa \
   -o compleasm-out \
   -l eukaryota \
+  --odb odb12.2 \
   -L mb_downloads \
   -t 8
 ```
@@ -139,9 +142,11 @@ taf-compleasm run_sepp.py -h
 ```text
 name: compleasm
 command: taf-compleasm
-version: 0.2.7-r2
+version: 0.2.8-r1
 kind: tool
-image: ghcr.io/taffish/compleasm:0.2.7-r2
+image: ghcr.io/taffish/compleasm:0.2.8-r1
+upstream: Compleasm v0.2.8
+runtime version: compleasm 0.2.8
 ```
 
 ## Container
@@ -151,7 +156,7 @@ The container image is built from `docker/Dockerfile`. It starts from
 environment:
 
 ```text
-compleasm 0.2.7
+compleasm 0.2.8 build pyh106432d_0
 miniprot 0.18
 hmmer 3.1b2
 sepp 4.5.1
@@ -177,10 +182,10 @@ linux/amd64
 ```
 
 The official Compleasm release asset is x64 Linux, and the full Bioconda
-environment for Compleasm 0.2.7 currently resolves cleanly on linux/amd64.
+environment for Compleasm 0.2.8 currently resolves cleanly on linux/amd64.
 On linux/arm64, the available `sepp` packages require a newer DendroPy than
-Compleasm 0.2.7 allows, so this TAFFISH release keeps full upstream
-functionality and declares amd64 only.
+Compleasm allows under the pinned dependency set, so this TAFFISH release keeps
+full upstream functionality and declares amd64 only.
 
 For Docker and Podman, `src/main.taf` declares `--platform linux/amd64`, so
 arm64 machines such as Apple Silicon Macs can still use the image through
@@ -204,8 +209,9 @@ The TAFFISH metadata declares a Docker smoke check:
 
 ```text
 exist: compleasm, miniprot, hmmsearch, run_sepp.py, python
-test:  Compleasm reports upstream version 0.2.7
+test:  Compleasm reports upstream version 0.2.8
 test:  core Compleasm help and all six subcommand help pages are available
+test:  run/analyze/list help exposes the ODB version option
 test:  miniprot, hmmsearch, and run_sepp.py are available
 test:  Python can import pandas, dendropy, and compleasm
 test:  a tiny local protein-to-genome miniprot workflow creates a GFF output
@@ -220,7 +226,8 @@ external lineage data.
 
 - Project: Compleasm
 - Repository: <https://github.com/huangnengCSU/compleasm>
-- Release: <https://github.com/huangnengCSU/compleasm/releases/tag/v0.2.7>
+- Release: <https://github.com/huangnengCSU/compleasm/releases/tag/v0.2.8>
+- Bioconda package: <https://anaconda.org/bioconda/compleasm>
 - Upstream license: Apache-2.0, with BUSCO-derived license terms noted by the
   upstream `LICENSE-BUSCO` file
 - Primary citation: Huang and Li 2023, doi:10.1093/bioinformatics/btad595,
@@ -233,10 +240,10 @@ Useful checks before publishing:
 ```sh
 taf check
 taf build
-taf publish --release --dry-run
-docker build --platform linux/amd64 -t ghcr.io/taffish/compleasm:0.2.7-r2 -f docker/Dockerfile .
-docker run --rm ghcr.io/taffish/compleasm:0.2.7-r2 compleasm --version
-docker run --rm ghcr.io/taffish/compleasm:0.2.7-r2 compleasm --help
+taf publish --build --release --dry-run
+docker build --platform linux/amd64 -t ghcr.io/taffish/compleasm:0.2.8-r1 -f docker/Dockerfile .
+docker run --rm --platform linux/amd64 ghcr.io/taffish/compleasm:0.2.8-r1 compleasm --version
+docker run --rm --platform linux/amd64 ghcr.io/taffish/compleasm:0.2.8-r1 compleasm --help
 ```
 
 The repository wrapper files are licensed under Apache-2.0. Upstream
