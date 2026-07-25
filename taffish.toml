@@ -1,7 +1,7 @@
 [package]
 name = "compleasm"
 kind = "tool"
-version = "0.2.8"
+version = "0.2.9"
 release = 1
 license = "Apache-2.0"
 main = "src/main.taf"
@@ -12,29 +12,30 @@ url = "https://github.com/taffish/compleasm"
 [command]
 name = "taf-compleasm"
 
-[meta]
-domain = "bio"
-categories = ["genomics", "assembly-quality", "completeness", "busco", "annotation"]
-keywords = ["compleasm", "busco", "genome-completeness", "miniprot", "hmmer", "sepp", "odb12", "odb12.2", "orthologs", "assembly-quality"]
-description = "Fast genome and protein completeness assessment based on BUSCO marker genes and miniprot."
-
 [runtime]
 pipe = true
 command_mode = true
 
 [container]
-image = "ghcr.io/taffish/compleasm:0.2.8-r1"
+image = "ghcr.io/taffish/compleasm:0.2.9-r1"
 dockerfile = "docker/Dockerfile"
-build_platforms = "linux/amd64"
+build_platforms = "linux/amd64,linux/arm64"
+
+[meta]
+domain = "bio"
+categories = ["genomics", "assembly-quality", "completeness", "busco", "annotation"]
+keywords = ["compleasm", "busco", "genome-completeness", "miniprot", "hmmer", "sepp", "odb10", "odb12", "odb12.2", "orthologs", "assembly-quality"]
+description = "Fast genome and protein completeness assessment based on BUSCO marker genes and miniprot."
 
 [upstream]
 name = "Compleasm"
 type = "github"
 repo = "huangnengCSU/compleasm"
 homepage = "https://github.com/huangnengCSU/compleasm"
-release_url = "https://github.com/huangnengCSU/compleasm/releases/tag/v0.2.8"
-downloads = "bioconda::compleasm=0.2.8=pyh106432d_0; https://github.com/huangnengCSU/compleasm/releases/download/v0.2.8/compleasm-0.2.8_x64-linux.tar.bz2"
-version = "0.2.8"
+release_url = "https://github.com/huangnengCSU/compleasm/releases/tag/v0.2.9"
+downloads = "https://codeload.github.com/huangnengCSU/compleasm/tar.gz/65414e3b207d40398cb9be5d58c9c0959200c9cf; bioconda runtime: python=3.11, miniprot=0.18, hmmer=3.4, sepp=4.5.6, dendropy=5.0.8, pandas=2.2.3, pasta=1.9.3, pplacer=1.1.alpha22"
+version = "0.2.9"
+commit = "65414e3b207d40398cb9be5d58c9c0959200c9cf"
 license = "Apache-2.0 AND LicenseRef-BUSCO"
 citation = "Huang and Li 2023"
 doi = "10.1093/bioinformatics/btad595"
@@ -44,6 +45,6 @@ strip_prefix = "v"
 
 [smoke]
 backend = "docker"
-timeout = 180
-exist = ["compleasm", "miniprot", "hmmsearch", "run_sepp.py", "python"]
-test = ["compleasm --version | grep -F 'compleasm 0.2.8' >/dev/null", "compleasm --help | grep -F 'Compleasm modules help' >/dev/null", "compleasm run --help | grep -F 'usage: compleasm run' >/dev/null", "compleasm run --help | grep -F -- '--odb' >/dev/null", "compleasm analyze --help | grep -F 'usage: compleasm analyze' >/dev/null", "compleasm analyze --help | grep -F -- '--odb' >/dev/null", "compleasm download --help | grep -F 'usage: compleasm download' >/dev/null", "compleasm list --help | grep -F 'usage: compleasm list' >/dev/null", "compleasm list --help | grep -F -- '--odb' >/dev/null", "compleasm miniprot --help | grep -F 'usage: compleasm miniprot' >/dev/null", "compleasm protein --help | grep -F 'usage: compleasm protein' >/dev/null", "miniprot --version 2>&1 | grep -F '0.18' >/dev/null", "hmmsearch -h | grep -F 'HMMER' >/dev/null", "run_sepp.py -h | grep -F 'usage: run_sepp.py' >/dev/null", "python -c 'import pandas, dendropy; import compleasm'", "mkdir -p /tmp/taf-compleasm-test && cd /tmp/taf-compleasm-test && printf '>chr1\\nATGAAAACCGCTTACATTGCTAAACAACGTCAAATTTCTTTTGTTAAATCTCATTTTTCTCGTCAACTGGAAGAACGTCTGGGTCTGATTGAAGTTCAAGCTAATAAT\\n' > genome.fa && printf '>prot1\\nMKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQANN\\n' > proteins.faa && compleasm miniprot -a genome.fa -p proteins.faa -o miniprot-out -t 1 >/dev/null && test -s miniprot-out/miniprot_output.gff && test -e miniprot-out/miniprot.done"]
+timeout = 240
+exist = ["compleasm", "miniprot", "hmmsearch", "hmmbuild", "hmmalign", "run_sepp.py", "pplacer", "guppy", "java", "python"]
+test = ["compleasm --version 2>&1 | grep -Fx 'compleasm 0.2.9' >/dev/null", "test \"$(grep -F 'upstream_commit=' /opt/compleasm/share/doc/compleasm/SOURCE)\" = 'upstream_commit=65414e3b207d40398cb9be5d58c9c0959200c9cf' && python -c 'from importlib.metadata import version; import compleasm, dendropy, pandas, sepp; assert version(\"compleasm\") == \"0.2.9\"; assert version(\"sepp\") == \"4.5.6\"; assert version(\"DendroPy\") == \"5.0.8\"; assert version(\"pandas\") == \"2.2.3\"'", "compleasm --help 2>&1 | grep -F 'Compleasm modules help' >/dev/null && compleasm run --help 2>&1 | grep -F -- '--odb' >/dev/null && compleasm analyze --help 2>&1 | grep -F 'usage: compleasm analyze' >/dev/null && compleasm download --help 2>&1 | grep -F 'usage: compleasm download' >/dev/null && compleasm list --help 2>&1 | grep -F 'usage: compleasm list' >/dev/null && compleasm miniprot --help 2>&1 | grep -F 'usage: compleasm miniprot' >/dev/null && compleasm protein --help 2>&1 | grep -F 'usage: compleasm protein' >/dev/null", "miniprot --version 2>&1 | grep -F '0.18' >/dev/null && hmmsearch -h 2>&1 | grep -F 'HMMER 3.4' >/dev/null && run_sepp.py -h 2>&1 | grep -F 'usage: run_sepp.py' >/dev/null && command -v pplacer >/dev/null && command -v guppy >/dev/null && java --version >/dev/null 2>&1 && { java -jar /opt/conda/bin/seppJsonMerger.jar 2>&1 || true; } | grep -F 'Usage: merge.jar' >/dev/null", "tmp=/tmp/taf-compleasm-odb-$$; trap 'rm -rf \"$tmp\"' EXIT HUP INT TERM; mkdir -p \"$tmp/library\"; printf 'geneat1 type 2 100\\n' > \"$tmp/odb10.lengths\"; printf 'gene 100 5\\n' > \"$tmp/odb12.2.lengths\"; python -c 'from compleasm import load_length_cutoff; import sys; a=load_length_cutoff(sys.argv[1], \"odb10\"); b=load_length_cutoff(sys.argv[2], \"odb12.2\"); assert a[\"geneat1\"] == {\"length\": 100.0, \"sigma\": 2.0}; assert b[\"gene\"] == {\"length\": 100.0, \"sigma\": 5.0}' \"$tmp/odb10.lengths\" \"$tmp/odb12.2.lengths\"; touch \"$tmp/library/eukaryota_odb10.done\"; compleasm list --local --odb odb10 -L \"$tmp/library\" | grep -Fx 'eukaryota' >/dev/null", "tmp=/tmp/taf-compleasm-hmmer-$$; trap 'rm -rf \"$tmp\"' EXIT HUP INT TERM; mkdir -p \"$tmp\"; cd \"$tmp\"; printf '# STOCKHOLM 1.0\\nseq1 MKTAYIAK\\nseq2 MKTAYIAK\\n//\\n' > toy.sto; hmmbuild toy.hmm toy.sto >/dev/null; printf '>target\\nMKTAYIAK\\n' > target.fa; hmmsearch --tblout hits.tsv toy.hmm target.fa >/dev/null; test -s hits.tsv; grep -F 'target' hits.tsv >/dev/null", "tmp=/tmp/taf-compleasm-miniprot-$$; trap 'rm -rf \"$tmp\"' EXIT HUP INT TERM; mkdir -p \"$tmp\"; cd \"$tmp\"; printf '>chr1\\nATGAAAACCGCTTACATTGCTAAACAACGTCAAATTTCTTTTGTTAAATCTCATTTTTCTCGTCAACTGGAAGAACGTCTGGGTCTGATTGAAGTTCAAGCTAATAAT\\n' > genome.fa; printf '>prot1\\nMKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQANN\\n' > proteins.faa; compleasm miniprot -a genome.fa -p proteins.faa -o miniprot-out -t 1 >/dev/null; test -s miniprot-out/miniprot_output.gff; test -e miniprot-out/miniprot.done"]

@@ -1,252 +1,213 @@
-# taf-compleasm
+# compleasm
 
-TAFFISH wrapper for [Compleasm](https://github.com/huangnengCSU/compleasm),
-a fast genome and protein completeness assessment tool based on BUSCO marker
-genes, miniprot, and HMMER.
+`compleasm` packages [Compleasm](https://github.com/huangnengCSU/compleasm)
+for TAFFISH.
 
-This repository packages Compleasm 0.2.8 as a TAFFISH tool app. The container
-installs the Bioconda Compleasm package and exposes the upstream `compleasm`
-command together with its runtime tools, including `miniprot`, `hmmsearch`,
-and `run_sepp.py`.
+Package identity:
 
-## Installation
+- name: `compleasm`
+- command: `taf-compleasm`
+- kind: `tool`
+- version: `0.2.9-r1`
+- image: `ghcr.io/taffish/compleasm:0.2.9-r1`
+- upstream release: `v0.2.9`
+- runtime version: `compleasm 0.2.9`
+- license: Apache-2.0
+- upstream: <https://github.com/huangnengCSU/compleasm>
 
-Install from the public TAFFISH Hub index:
+## What This App Packages
 
-```sh
-taf update
-taf install compleasm
-```
+Compleasm performs genome or protein completeness assessment with BUSCO marker
+genes. The app builds upstream Compleasm 0.2.9 from its exact release commit and
+ships the runtime tools required by its standard and autolineage paths,
+including miniprot, HMMER, SEPP, PASTA, pplacer, and Java.
 
-Install the exact release:
+Compleasm 0.2.9 supports ODB10, ODB12, and ODB12.2 lineage formats. ODB12 is
+the upstream default.
 
-```sh
-taf install compleasm 0.2.8-r1
-```
+## Scope
 
-For local testing before the app is published to the public index:
+This app supports:
 
-```sh
-taf install --from .
-```
+- assembly completeness with `compleasm run`
+- protein completeness with `compleasm protein`
+- analysis of an existing miniprot GFF with `compleasm analyze`
+- lineage download, local/remote listing, and autolineage
+- standalone access to packaged helper executables
+
+This app does not:
+
+- bundle BUSCO lineage datasets
+- make remote downloads reproducible or available while offline
+- replace biological review of lineage choice and completeness results
+
+## Container Contents
+
+- `compleasm`: upstream command and all six public subcommands
+- `miniprot`: protein-to-genome aligner used by assembly mode
+- `hmmsearch`, `hmmbuild`, `hmmalign`: HMMER programs
+- `run_sepp.py`, `pplacer`, `guppy`: autolineage placement stack
+- `python`: pinned Python runtime with Compleasm, pandas, DendroPy, and SEPP
+
+The source archive commit and checksum, upstream licenses, upstream README, and
+resolved Conda package inventory are retained under
+`/opt/compleasm/share/`.
 
 ## Usage
 
-Show TAFFISH app help:
+Install this exact release:
 
 ```sh
-taf-compleasm --help
+taf install compleasm 0.2.9-r1
 ```
 
-Show the TAFFISH package version:
+Show upstream help and version:
 
 ```sh
-taf-compleasm --version
-```
-
-Show the upstream Compleasm version:
-
-```sh
-taf-compleasm compleasm --version
+taf-compleasm -- --help
 taf-compleasm -- --version
 ```
 
-Show upstream Compleasm help:
+Download a lineage into a host-visible directory:
 
 ```sh
-taf-compleasm compleasm --help
-taf-compleasm -- --help
+taf-compleasm compleasm download eukaryota -L mb_downloads --odb odb12
 ```
 
-## Official Guide Mapping
-
-The upstream quick-start commands use `compleasm_kit/compleasm.py`. In this
-TAFFISH app, the equivalent upstream executable is available as `compleasm`
-inside the container, so use `taf-compleasm compleasm ...`:
-
-```sh
-# upstream:
-# compleasm_kit/compleasm.py download primates
-taf-compleasm compleasm download primates
-
-# upstream:
-# compleasm_kit/compleasm.py run -t16 -l primates -a hg38.fa -o hg38-mb
-taf-compleasm compleasm run -t 16 -l primates -a hg38.fa -o hg38-mb
-
-# upstream autolineage mode, requiring SEPP:
-# compleasm_kit/compleasm.py run --autolineage -a hg38.fa -o hs38-mb
-taf-compleasm compleasm run --autolineage -a hg38.fa -o hs38-mb
-```
-
-The container already includes `pandas`, `miniprot`, `hmmsearch`, and
-`run_sepp.py`, so users do not need to run `pip install pandas` or
-`conda install sepp` inside the container.
-
-Compleasm 0.2.8 continues the BUSCO ODB12 default introduced in 0.2.7 and is
-not compatible with ODB10 lineage datasets. Use ODB12 lineage downloads unless
-you intentionally build a separate older Compleasm release for ODB10. This
-release includes the upstream fix for placement filename parsing when an ODB
-version contains a dot, for example `--odb odb12.2`.
-
-Compleasm has subcommands such as `run`, `analyze`, `download`, `list`,
-`miniprot`, and `protein`. Because this is a command-mode TAFFISH tool, the
-clearest form is to name the upstream command explicitly:
-
-```sh
-taf-compleasm compleasm run -a genome.fa -o compleasm-out -l eukaryota -t 8
-taf-compleasm compleasm protein -p proteins.faa -l eukaryota -o protein-out -t 8
-taf-compleasm compleasm list --local -L mb_downloads
-```
-
-Do not use `taf-compleasm run ...` or `taf-compleasm -- run ...` for the
-Compleasm `run` subcommand. In TAFFISH command mode, the first non-option
-argument is treated as an in-container executable name. This means
-`taf-compleasm miniprot --version` runs the standalone `miniprot` executable,
-while `taf-compleasm compleasm miniprot ...` runs the Compleasm `miniprot`
-subcommand.
-
-Download a BUSCO lineage dataset:
-
-```sh
-taf-compleasm compleasm download eukaryota -L mb_downloads
-```
-
-Run with a specified lineage:
+Run assembly completeness:
 
 ```sh
 taf-compleasm compleasm run \
   -a genome.fa \
   -o compleasm-out \
   -l eukaryota \
-  --odb odb12.2 \
   -L mb_downloads \
+  --odb odb12 \
   -t 8
 ```
 
-Run the miniprot-only submodule without downloading lineage data:
+Run protein completeness:
 
 ```sh
-taf-compleasm compleasm miniprot -a genome.fa -p proteins.faa -o miniprot-out -t 8
+taf-compleasm compleasm protein \
+  -p proteins.faa \
+  -o protein-out \
+  -l eukaryota \
+  -L mb_downloads \
+  --odb odb12 \
+  -t 8
 ```
 
-Access bundled helper executables directly:
+Run the miniprot-only submodule without lineage data:
 
 ```sh
-taf-compleasm miniprot --version
-taf-compleasm hmmsearch -h
-taf-compleasm run_sepp.py -h
+taf-compleasm compleasm miniprot \
+  -a genome.fa \
+  -p proteins.faa \
+  -o miniprot-out \
+  -t 8
 ```
 
-## Package
+## Command Mode
 
-```text
-name: compleasm
-command: taf-compleasm
-version: 0.2.8-r1
-kind: tool
-image: ghcr.io/taffish/compleasm:0.2.8-r1
-upstream: Compleasm v0.2.8
-runtime version: compleasm 0.2.8
-```
-
-## Container
-
-The container image is built from `docker/Dockerfile`. It starts from
-`mambaorg/micromamba:1.5.10-bookworm-slim` and installs a pinned Bioconda
-environment:
-
-```text
-compleasm 0.2.8 build pyh106432d_0
-miniprot 0.18
-hmmer 3.1b2
-sepp 4.5.1
-dendropy 4.5.2
-pandas 1.3.5
-python 3.7
-```
-
-The image includes these user-facing commands:
-
-```text
-compleasm
-miniprot
-hmmsearch
-run_sepp.py
-python
-```
-
-The current release is built for:
-
-```text
-linux/amd64
-```
-
-The official Compleasm release asset is x64 Linux, and the full Bioconda
-environment for Compleasm 0.2.8 currently resolves cleanly on linux/amd64.
-On linux/arm64, the available `sepp` packages require a newer DendroPy than
-Compleasm allows under the pinned dependency set, so this TAFFISH release keeps
-full upstream functionality and declares amd64 only.
-
-For Docker and Podman, `src/main.taf` declares `--platform linux/amd64`, so
-arm64 machines such as Apple Silicon Macs can still use the image through
-normal Docker/Podman amd64 emulation:
+The default in-container command is `compleasm`. Option-leading arguments can
+be passed with `--`:
 
 ```sh
-TAFFISH_CONTAINER_BACKEND=docker \
-  taf-compleasm compleasm --version
-
-TAFFISH_CONTAINER_BACKEND=docker \
-  taf-compleasm compleasm run -a genome.fa -o compleasm-out -l eukaryota -t 8
+taf-compleasm -- --help
+taf-compleasm -- --version
 ```
 
-This does not mean the image contains a native arm64 build; it runs the amd64
-image through emulation. Apptainer compatibility depends on the host and site
-configuration.
-
-## Smoke Checks
-
-The TAFFISH metadata declares a Docker smoke check:
-
-```text
-exist: compleasm, miniprot, hmmsearch, run_sepp.py, python
-test:  Compleasm reports upstream version 0.2.8
-test:  core Compleasm help and all six subcommand help pages are available
-test:  run/analyze/list help exposes the ODB version option
-test:  miniprot, hmmsearch, and run_sepp.py are available
-test:  Python can import pandas, dendropy, and compleasm
-test:  a tiny local protein-to-genome miniprot workflow creates a GFF output
-```
-
-The smoke check covers all Compleasm command surfaces, but it does not download
-BUSCO lineage datasets. Commands such as `download`, `list --remote`, `run`
-with a missing lineage, and `--autolineage` can require network access and
-external lineage data.
-
-## Upstream
-
-- Project: Compleasm
-- Repository: <https://github.com/huangnengCSU/compleasm>
-- Release: <https://github.com/huangnengCSU/compleasm/releases/tag/v0.2.8>
-- Bioconda package: <https://anaconda.org/bioconda/compleasm>
-- Upstream license: Apache-2.0, with BUSCO-derived license terms noted by the
-  upstream `LICENSE-BUSCO` file
-- Primary citation: Huang and Li 2023, doi:10.1093/bioinformatics/btad595,
-  PMID:37758247
-
-## Maintainer Notes
-
-Useful checks before publishing:
+For a Compleasm subcommand, name the upstream executable explicitly:
 
 ```sh
-taf check
-taf build
-taf publish --build --release --dry-run
-docker build --platform linux/amd64 -t ghcr.io/taffish/compleasm:0.2.8-r1 -f docker/Dockerfile .
-docker run --rm --platform linux/amd64 ghcr.io/taffish/compleasm:0.2.8-r1 compleasm --version
-docker run --rm --platform linux/amd64 ghcr.io/taffish/compleasm:0.2.8-r1 compleasm --help
+taf-compleasm compleasm run ...
+taf-compleasm compleasm miniprot ...
 ```
 
-The repository wrapper files are licensed under Apache-2.0. Upstream
-Compleasm is distributed under Apache-2.0 with additional BUSCO-derived
-license terms, and third-party runtime components are distributed under
-their own upstream licenses.
+Do not use `taf-compleasm run ...`: automatic command mode would look for an
+executable named `run`. Conversely, `taf-compleasm miniprot --version` invokes
+the standalone miniprot executable, not the Compleasm subcommand.
+
+## Inputs
+
+| Input | Meaning | Notes |
+| --- | --- | --- |
+| FASTA assembly | Genome or transcript assembly | Used by `run`, `analyze`, or `miniprot` as appropriate |
+| Protein FASTA | Predicted protein sequences | Used by `protein` or `miniprot` |
+| miniprot GFF | Existing miniprot alignment | Used by `analyze` |
+| BUSCO lineage directory | Marker profiles and metadata | Download separately and select with `-l`, `-L`, and `--odb` |
+
+Input and output paths should be under the working directory or another path
+made visible by TAFFISH runtime configuration.
+
+## Output Notes
+
+`run`, `analyze`, and `protein` create an upstream Compleasm output directory
+containing summary tables and intermediate results. `miniprot` writes
+`miniprot_output.gff` and a completion marker in its output directory. Exact
+filenames and interpretation follow upstream Compleasm.
+
+Compleasm rejects an already populated output directory in several modes.
+Choose a new path or manage existing results deliberately.
+
+## Resources, Databases, and Platform
+
+Native images are built for `linux/amd64` and `linux/arm64`.
+
+Lineage data is external. `download` and `list --remote` require network
+access; `run` may download a missing lineage, and `--autolineage` may also need
+remote lineage data. Download once into a persistent host directory and reuse
+it with `-L` for offline runs:
+
+```sh
+taf-compleasm compleasm list --local -L mb_downloads --odb odb12
+```
+
+ODB10, ODB12, and ODB12.2 datasets are accepted by this release, but a lineage
+must match the selected `--odb` value. Lineage availability and contents are
+controlled by BUSCO/Compleasm upstream and are not frozen in this image.
+
+Runtime cost depends on assembly size, lineage size, thread count, and whether
+autolineage is enabled. Production genomes need substantially more time and
+memory than the tiny package smoke.
+
+## Boundaries
+
+The image includes all packaged executables needed for upstream standard and
+autolineage paths, but not external lineage datasets. Network-dependent
+commands remain subject to upstream service availability. Passing custom
+lineage data or non-default helper options is supported according to upstream
+CLI behavior, not a separate TAFFISH API.
+
+## Troubleshooting
+
+- If a lineage is not found, verify `-L`, `-l`, and `--odb` together, then run
+  `compleasm list --local` against the same directory.
+- If `taf-compleasm run ...` reports a missing executable, use
+  `taf-compleasm compleasm run ...`.
+- If a remote download fails, retry outside an offline environment or prepare
+  the lineage directory separately and reuse it locally.
+
+## Testing
+
+The smoke test independently checks:
+
+- exact upstream source identity and Python package versions
+- every Compleasm subcommand help surface
+- miniprot, HMMER, SEPP, pplacer, and guppy availability, plus execution of
+  the Java-based SEPP JSON merger
+- ODB10 and ODB12.2 cutoff parsing plus local lineage discovery
+- a tiny real HMMER search and a tiny real Compleasm miniprot output
+
+It does not download a lineage, run a full completeness assessment, or perform
+a positive autolineage analysis. Those paths require substantial external data
+and do not belong in an offline index smoke.
+
+## License and Citation
+
+TAFFISH app packaging is Apache-2.0. Upstream Compleasm is Apache-2.0 and also
+ships `LICENSE-BUSCO`; third-party runtime components retain their own terms.
+
+Cite Compleasm as described upstream: Huang and Li (2023),
+<https://doi.org/10.1093/bioinformatics/btad595>.
